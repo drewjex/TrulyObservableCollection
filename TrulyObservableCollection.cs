@@ -11,17 +11,13 @@ namespace SkyWest.Common.WPF
     {
         public Action<object, PropertyChangedEventArgs> Handler;
 
-        public TrulyObservableCollection()
-            : base()
+        public TrulyObservableCollection() : base()
         {
             CollectionChanged += new NotifyCollectionChangedEventHandler(TrulyObservableCollection_CollectionChanged);
         }
 
         public TrulyObservableCollection(IEnumerable<T> collection)
         {
-            if (collection == null)
-                throw new ArgumentNullException("collection");
-
             CopyFrom(collection);
 
             CollectionChanged += new NotifyCollectionChangedEventHandler(TrulyObservableCollection_CollectionChanged);
@@ -29,13 +25,10 @@ namespace SkyWest.Common.WPF
 
         public TrulyObservableCollection(IEnumerable<T> collection, Action<object, PropertyChangedEventArgs> handler)
         {
-            if (collection == null)
-                throw new ArgumentNullException("collection");
-
             CopyFrom(collection);
 
             Handler = handler;
-            foreach (T item in collection)
+            foreach (T item in Items)
             {
                 ((INotifyPropertyChanged)item).PropertyChanged += new PropertyChangedEventHandler(Handler);
                 RecursivelyApplyEventHandler(item);
@@ -73,6 +66,14 @@ namespace SkyWest.Common.WPF
 
         void TrulyObservableCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            if (e.OldItems != null)
+            {
+                foreach (Object item in e.OldItems)
+                {
+                    ((INotifyPropertyChanged)item).PropertyChanged -= new PropertyChangedEventHandler(Handler);
+                    RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
+                }
+            }
             if (e.NewItems != null)
             {
                 foreach (Object item in e.NewItems)
@@ -81,14 +82,7 @@ namespace SkyWest.Common.WPF
                     RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
                 }
             }
-            if (e.OldItems != null)
-            {
-                foreach (Object item in e.OldItems)
-                {
-                    ((INotifyPropertyChanged)item).PropertyChanged += new PropertyChangedEventHandler(Handler);
-                    RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
-                }
-            }
+
         }
     }
 }
