@@ -66,23 +66,25 @@ namespace Common.WPF
 
         void TrulyObservableCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.OldItems != null)
+            if (Handler != null)
             {
-                foreach (Object item in e.OldItems)
+                if (e.OldItems != null)
                 {
-                    ((INotifyPropertyChanged)item).PropertyChanged -= new PropertyChangedEventHandler(Handler);
-                    RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
+                    foreach (Object item in e.OldItems)
+                    {
+                        ((INotifyPropertyChanged)item).PropertyChanged -= new PropertyChangedEventHandler(Handler);
+                        RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
+                    }
+                }
+                if (e.NewItems != null)
+                {
+                    foreach (Object item in e.NewItems)
+                    {
+                        ((INotifyPropertyChanged)item).PropertyChanged += new PropertyChangedEventHandler(Handler);
+                        RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
+                    }
                 }
             }
-            if (e.NewItems != null)
-            {
-                foreach (Object item in e.NewItems)
-                {
-                    ((INotifyPropertyChanged)item).PropertyChanged += new PropertyChangedEventHandler(Handler);
-                    RecursivelyApplyEventHandler((INotifyPropertyChanged)item);
-                }
-            }
-
         }
     }
 }
